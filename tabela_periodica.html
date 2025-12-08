@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Periódica Interativa</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg-primary: #0a0e27;
+    --bg-secondary: #131829;
+    --accent-cyan: #00d9ff;
+    --accent-purple: #a855f7;
+    --accent-yellow: #fbbf24;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --card-bg: rgba(30, 41, 59, 0.6);
+    --border-glow: rgba(0, 217, 255, 0.3);
+    
+    /* Cores por categoria */
+    --nao-metal: #00d9ff;
+    --gas-nobre: #a855f7;
+    --metal-alcalino: #fbbf24;
+    --metal-alcalino-terroso: #fb923c;
+    --semimetal: #10b981;
+    --halogeno: #ec4899;
+    --metal-pos-transicao: #6366f1;
+    --metal-de-transicao: #ef4444;
+    --lantanideo: #8b5cf6;
+    --actinideo: #f97316;
+    
+    /* Tamanhos do carrossel - CORREÇÃO */
+    --card-width: 280px;
+    --card-gap: 24px;
+}
+
+/* Botões de navegação do carrossel */
+.carrossel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-cyan);
+    border-radius: 50%;
+    color: var(--accent-cyan);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+.carrossel-nav:hover {
+    background: var(--accent-cyan);
+    color: var(--bg-primary);
+    box-shadow: 0 0 30px rgba(0, 217, 255, 0.6);
+}
+
+.carrossel-nav:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.carrossel-nav.prev {
+    left: 0;
+}
+
+.carrossel-nav.next {
+    right: 0;
+}
+
+.carrossel-container {
+    position: relative;
+    padding: 0 60px; /* Espaço para os botões */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    position: relative;
+    line-height: 1.6;
+}
+
+/* Background animado */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(251, 191, 36, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+    animation: bgPulse 20s ease-in-out infinite;
+}
+
+@keyframes bgPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+/* Header */
+h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple), var(--accent-yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    letter-spacing: -2px;
+    text-align: center;
+    animation: slideDown 0.8s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CORREÇÃO 1: Tabela SVG centralizada
+   ══════════════════════════════════════════════════════════════ */
+#tabela-container {
+    margin: 40px 0 60px;
+    /* CORREÇÃO: usar flexbox para centralizar */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 1s ease-out 0.3s backwards;
+}
+
+#tabela-svg {
+    /* CORREÇÃO: display block + margin auto */
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 1200px;
+    height: auto;
+    border-radius: 20px;
+    border: 2px solid var(--border-glow);
+    box-shadow: 
+        0 0 30px rgba(0, 217, 255, 0.2),
+        0 20px 60px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: rgba(19, 24, 41, 0.5);
+    backdrop-filter: blur(10px);
+}
+
+#tabela-svg:hover {
+    transform: scale(1.01);
+    box-shadow: 
+        0 0 50px rgba(0, 217, 255, 0.4),
+        0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Título do carrossel */
+h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    margin: 60px 0 30px;
+    color: var(--accent-cyan);
+    letter-spacing: -1px;
+    text-align: center;
+    animation: fadeIn 1s ease-out 0.5s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Container do carrossel */
+.carrossel-container {
+    position: relative;
+    margin-top: 40px;
+    animation: fadeIn 1s ease-out 0.7s backwards;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CORREÇÃO 2: Carrossel com scroll-snap
+   ══════════════════════════════════════════════════════════════ */
+.carrossel {
+    display: flex;
+    gap: var(--card-gap);
+    padding: 20px 10px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-cyan) var(--bg-secondary);
+    /* CORREÇÃO: scroll-snap para alinhar cards */
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+.carrossel::-webkit-scrollbar {
+    height: 8px;
+}
+
+.carrossel::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+
+.carrossel::-webkit-scrollbar-thumb {
+    background: var(--accent-cyan);
+    border-radius: 10px;
+}
+
+.carrossel::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-purple);
+}
+
+/* Cards dos elementos */
+.elemento-card {
+    flex: 0 0 var(--card-width);
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: cardSlideIn 0.5s ease-out backwards;
+    /* CORREÇÃO: scroll-snap nos cards */
+    scroll-snap-align: start;
+}
+
+@keyframes cardSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.elemento-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.elemento-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    border-color: var(--accent-cyan);
+    box-shadow: 
+        0 0 30px var(--border-glow),
+        0 20px 40px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+}
+
+.elemento-card:hover::before {
+    opacity: 1;
+}
+
+.elemento-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-cyan);
+    transition: transform 0.3s ease;
+    transform: scaleY(0);
+    transform-origin: top;
+}
+
+.elemento-card:hover::after {
+    transform: scaleY(1);
+}
+
+/* Delay nas animações dos cards */
+.elemento-card:nth-child(1) { animation-delay: 0.1s; }
+.elemento-card:nth-child(2) { animation-delay: 0.2s; }
+.elemento-card:nth-child(3) { animation-delay: 0.3s; }
+.elemento-card:nth-child(4) { animation-delay: 0.4s; }
+.elemento-card:nth-child(5) { animation-delay: 0.5s; }
+
+.numero-atomico {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-weight: 300;
+}
+
+.simbolo {
+    font-family: 'Space Mono', monospace;
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: var(--accent-cyan);
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+.elemento-card:hover .simbolo {
+    transform: scale(1.15);
+    text-shadow: 0 0 20px currentColor;
+}
+
+.nome-elemento {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.massa-atomica {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.massa-atomica::after {
+    content: ' u';
+    font-size: 0.7rem;
+}
+
+.categoria {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-top: 8px;
+}
+
+/* Cores específicas por categoria */
+.elemento-card[data-categoria="não metal"] .simbolo,
+.elemento-card[data-categoria="não metal"]::after {
+    color: var(--nao-metal);
+    background: var(--nao-metal);
+}
+
+.elemento-card[data-categoria="gás nobre"] .simbolo,
+.elemento-card[data-categoria="gás nobre"]::after {
+    color: var(--gas-nobre);
+    background: var(--gas-nobre);
+}
+
+.elemento-card[data-categoria="metal alcalino"] .simbolo,
+.elemento-card[data-categoria="metal alcalino"]::after {
+    color: var(--metal-alcalino);
+    background: var(--metal-alcalino);
+}
+
+.elemento-card[data-categoria="metal alcalino-terroso"] .simbolo,
+.elemento-card[data-categoria="metal alcalino-terroso"]::after {
+    color: var(--metal-alcalino-terroso);
+    background: var(--metal-alcalino-terroso);
+}
+
+.elemento-card[data-categoria="semimetal"] .simbolo,
+.elemento-card[data-categoria="semimetal"]::after {
+    color: var(--semimetal);
+    background: var(--semimetal);
+}
+
+.elemento-card[data-categoria="halogênio"] .simbolo,
+.elemento-card[data-categoria="halogênio"]::after {
+    color: var(--halogeno);
+    background: var(--halogeno);
+}
+
+.elemento-card[data-categoria="metal pós-transição"] .simbolo,
+.elemento-card[data-categoria="metal pós-transição"]::after {
+    color: var(--metal-pos-transicao);
+    background: var(--metal-pos-transicao);
+}
+
+.elemento-card[data-categoria="metal de transição"] .simbolo,
+.elemento-card[data-categoria="metal de transição"]::after {
+    color: var(--metal-de-transicao);
+    background: var(--metal-de-transicao);
+}
+
+.elemento-card[data-categoria="lantanídeo"] .simbolo,
+.elemento-card[data-categoria="lantanídeo"]::after {
+    color: var(--lantanideo);
+    background: var(--lantanideo);
+}
+
+.elemento-card[data-categoria="actinídeo"] .simbolo,
+.elemento-card[data-categoria="actinídeo"]::after {
+    color: var(--actinideo);
+    background: var(--actinideo);
+}
+
+/* Modal de detalhes */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.ativo {
+    display: flex;
+}
+
+.modal-conteudo {
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    border: 2px solid var(--accent-cyan);
+    box-shadow: 0 0 50px rgba(0, 217, 255, 0.3);
+    position: relative;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-fechar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-fechar:hover {
+    color: var(--accent-cyan);
+    background: rgba(0, 217, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+.modal-simbolo {
+    font-family: 'Space Mono', monospace;
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--accent-cyan);
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0 0 30px currentColor;
+}
+
+.modal-nome {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.modal-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+.info-item {
+    text-align: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.info-valor {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent-cyan);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    :root {
+        --card-width: 240px;
+    }
+    
+    .container {
+        padding: 20px 10px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .simbolo {
+        font-size: 3rem;
+    }
+
+    .modal-conteudo {
+        padding: 30px 20px;
+    }
+
+    .modal-simbolo {
+        font-size: 4rem;
+    }
+
+    .modal-nome {
+        font-size: 1.8rem;
+    }
+
+    .modal-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --card-width: 200px;
+    }
+    
+    .elemento-card {
+        padding: 20px;
+    }
+
+    .simbolo {
+        font-size: 2.5rem;
+    }
+}
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tabela Periódica</h1>
+        
+        <div id="tabela-container">
+            <!-- Usando placeholder - substitua pelo seu SVG -->
+            <img id="tabela-svg" src="Periodic_table_pt.svg" alt="Tabela Periódica">
+        </div>
+        
+        <h2>Explore os Elementos</h2>
+        
+        <div class="carrossel-container">
+            <button class="carrossel-nav prev" aria-label="Anterior">&#8249;</button>
+            <div class="carrossel" id="carrossel">
+                <!-- Cards serão inseridos via JavaScript -->
+            </div>
+            <button class="carrossel-nav next" aria-label="Próximo">&#8250;</button>
+        </div>
+    </div>
+
+    <script>
+// Dados embutidos como fallback (todos os 118 elementos)
+const elementosFallback = [
+    {"id":1,"nome":"Hidrogênio","simbolo":"H","numero":1,"massa":1.008,"categoria":"não metal"},
+    {"id":2,"nome":"Hélio","simbolo":"He","numero":2,"massa":4.0026,"categoria":"gás nobre"},
+    {"id":3,"nome":"Lítio","simbolo":"Li","numero":3,"massa":6.94,"categoria":"metal alcalino"},
+    {"id":4,"nome":"Berílio","simbolo":"Be","numero":4,"massa":9.0122,"categoria":"metal alcalino-terroso"},
+    {"id":5,"nome":"Boro","simbolo":"B","numero":5,"massa":10.81,"categoria":"semimetal"},
+    {"id":6,"nome":"Carbono","simbolo":"C","numero":6,"massa":12.011,"categoria":"não metal"},
+    {"id":7,"nome":"Nitrogênio","simbolo":"N","numero":7,"massa":14.007,"categoria":"não metal"},
+    {"id":8,"nome":"Oxigênio","simbolo":"O","numero":8,"massa":15.999,"categoria":"não metal"},
+    {"id":9,"nome":"Flúor","simbolo":"F","numero":9,"massa":18.998,"categoria":"halogênio"},
+    {"id":10,"nome":"Neônio","simbolo":"Ne","numero":10,"massa":20.18,"categoria":"gás nobre"},
+    {"id":11,"nome":"Sódio","simbolo":"Na","numero":11,"massa":22.99,"categoria":"metal alcalino"},
+    {"id":12,"nome":"Magnésio","simbolo":"Mg","numero":12,"massa":24.305,"categoria":"metal alcalino-terroso"},
+    {"id":13,"nome":"Alumínio","simbolo":"Al","numero":13,"massa":26.982,"categoria":"metal pós-transição"},
+    {"id":14,"nome":"Silício","simbolo":"Si","numero":14,"massa":28.086,"categoria":"semimetal"},
+    {"id":15,"nome":"Fósforo","simbolo":"P","numero":15,"massa":30.974,"categoria":"não metal"},
+    {"id":16,"nome":"Enxofre","simbolo":"S","numero":16,"massa":32.06,"categoria":"não metal"},
+    {"id":17,"nome":"Cloro","simbolo":"Cl","numero":17,"massa":35.45,"categoria":"halogênio"},
+    {"id":18,"nome":"Argônio","simbolo":"Ar","numero":18,"massa":39.948,"categoria":"gás nobre"},
+    {"id":19,"nome":"Potássio","simbolo":"K","numero":19,"massa":39.098,"categoria":"metal alcalino"},
+    {"id":20,"nome":"Cálcio","simbolo":"Ca","numero":20,"massa":40.078,"categoria":"metal alcalino-terroso"},
+    {"id":21,"nome":"Escândio","simbolo":"Sc","numero":21,"massa":44.956,"categoria":"metal de transição"},
+    {"id":22,"nome":"Titânio","simbolo":"Ti","numero":22,"massa":47.867,"categoria":"metal de transição"},
+    {"id":23,"nome":"Vanádio","simbolo":"V","numero":23,"massa":50.942,"categoria":"metal de transição"},
+    {"id":24,"nome":"Cromo","simbolo":"Cr","numero":24,"massa":51.996,"categoria":"metal de transição"},
+    {"id":25,"nome":"Manganês","simbolo":"Mn","numero":25,"massa":54.938,"categoria":"metal de transição"},
+    {"id":26,"nome":"Ferro","simbolo":"Fe","numero":26,"massa":55.845,"categoria":"metal de transição"},
+    {"id":27,"nome":"Cobalto","simbolo":"Co","numero":27,"massa":58.933,"categoria":"metal de transição"},
+    {"id":28,"nome":"Níquel","simbolo":"Ni","numero":28,"massa":58.693,"categoria":"metal de transição"},
+    {"id":29,"nome":"Cobre","simbolo":"Cu","numero":29,"massa":63.546,"categoria":"metal de transição"},
+    {"id":30,"nome":"Zinco","simbolo":"Zn","numero":30,"massa":65.38,"categoria":"metal de transição"},
+    {"id":31,"nome":"Gálio","simbolo":"Ga","numero":31,"massa":69.723,"categoria":"metal pós-transição"},
+    {"id":32,"nome":"Germânio","simbolo":"Ge","numero":32,"massa":72.63,"categoria":"semimetal"},
+    {"id":33,"nome":"Arsênio","simbolo":"As","numero":33,"massa":74.922,"categoria":"semimetal"},
+    {"id":34,"nome":"Selênio","simbolo":"Se","numero":34,"massa":78.971,"categoria":"não metal"},
+    {"id":35,"nome":"Bromo","simbolo":"Br","numero":35,"massa":79.904,"categoria":"halogênio"},
+    {"id":36,"nome":"Criptônio","simbolo":"Kr","numero":36,"massa":83.798,"categoria":"gás nobre"},
+    {"id":37,"nome":"Rubídio","simbolo":"Rb","numero":37,"massa":85.468,"categoria":"metal alcalino"},
+    {"id":38,"nome":"Estrôncio","simbolo":"Sr","numero":38,"massa":87.62,"categoria":"metal alcalino-terroso"},
+    {"id":39,"nome":"Ítrio","simbolo":"Y","numero":39,"massa":88.906,"categoria":"metal de transição"},
+    {"id":40,"nome":"Zircônio","simbolo":"Zr","numero":40,"massa":91.224,"categoria":"metal de transição"},
+    {"id":41,"nome":"Nióbio","simbolo":"Nb","numero":41,"massa":92.906,"categoria":"metal de transição"},
+    {"id":42,"nome":"Molibdênio","simbolo":"Mo","numero":42,"massa":95.95,"categoria":"metal de transição"},
+    {"id":43,"nome":"Tecnécio","simbolo":"Tc","numero":43,"massa":98,"categoria":"metal de transição"},
+    {"id":44,"nome":"Rutênio","simbolo":"Ru","numero":44,"massa":101.07,"categoria":"metal de transição"},
+    {"id":45,"nome":"Ródio","simbolo":"Rh","numero":45,"massa":102.91,"categoria":"metal de transição"},
+    {"id":46,"nome":"Paládio","simbolo":"Pd","numero":46,"massa":106.42,"categoria":"metal de transição"},
+    {"id":47,"nome":"Prata","simbolo":"Ag","numero":47,"massa":107.87,"categoria":"metal de transição"},
+    {"id":48,"nome":"Cádmio","simbolo":"Cd","numero":48,"massa":112.41,"categoria":"metal de transição"},
+    {"id":49,"nome":"Índio","simbolo":"In","numero":49,"massa":114.82,"categoria":"metal pós-transição"},
+    {"id":50,"nome":"Estanho","simbolo":"Sn","numero":50,"massa":118.71,"categoria":"metal pós-transição"},
+    {"id":51,"nome":"Antimônio","simbolo":"Sb","numero":51,"massa":121.76,"categoria":"semimetal"},
+    {"id":52,"nome":"Telúrio","simbolo":"Te","numero":52,"massa":127.6,"categoria":"semimetal"},
+    {"id":53,"nome":"Iodo","simbolo":"I","numero":53,"massa":126.9,"categoria":"halogênio"},
+    {"id":54,"nome":"Xenônio","simbolo":"Xe","numero":54,"massa":131.29,"categoria":"gás nobre"},
+    {"id":55,"nome":"Césio","simbolo":"Cs","numero":55,"massa":132.91,"categoria":"metal alcalino"},
+    {"id":56,"nome":"Bário","simbolo":"Ba","numero":56,"massa":137.33,"categoria":"metal alcalino-terroso"},
+    {"id":57,"nome":"Lantânio","simbolo":"La","numero":57,"massa":138.91,"categoria":"lantanídeo"},
+    {"id":58,"nome":"Cério","simbolo":"Ce","numero":58,"massa":140.12,"categoria":"lantanídeo"},
+    {"id":59,"nome":"Praseodímio","simbolo":"Pr","numero":59,"massa":140.91,"categoria":"lantanídeo"},
+    {"id":60,"nome":"Neodímio","simbolo":"Nd","numero":60,"massa":144.24,"categoria":"lantanídeo"},
+    {"id":61,"nome":"Promécio","simbolo":"Pm","numero":61,"massa":145,"categoria":"lantanídeo"},
+    {"id":62,"nome":"Samário","simbolo":"Sm","numero":62,"massa":150.36,"categoria":"lantanídeo"},
+    {"id":63,"nome":"Európio","simbolo":"Eu","numero":63,"massa":151.96,"categoria":"lantanídeo"},
+    {"id":64,"nome":"Gadolínio","simbolo":"Gd","numero":64,"massa":157.25,"categoria":"lantanídeo"},
+    {"id":65,"nome":"Térbio","simbolo":"Tb","numero":65,"massa":158.93,"categoria":"lantanídeo"},
+    {"id":66,"nome":"Disprósio","simbolo":"Dy","numero":66,"massa":162.5,"categoria":"lantanídeo"},
+    {"id":67,"nome":"Hólmio","simbolo":"Ho","numero":67,"massa":164.93,"categoria":"lantanídeo"},
+    {"id":68,"nome":"Érbio","simbolo":"Er","numero":68,"massa":167.26,"categoria":"lantanídeo"},
+    {"id":69,"nome":"Túlio","simbolo":"Tm","numero":69,"massa":168.93,"categoria":"lantanídeo"},
+    {"id":70,"nome":"Itérbio","simbolo":"Yb","numero":70,"massa":173.05,"categoria":"lantanídeo"},
+    {"id":71,"nome":"Lutécio","simbolo":"Lu","numero":71,"massa":174.97,"categoria":"lantanídeo"},
+    {"id":72,"nome":"Háfnio","simbolo":"Hf","numero":72,"massa":178.49,"categoria":"metal de transição"},
+    {"id":73,"nome":"Tântalo","simbolo":"Ta","numero":73,"massa":180.95,"categoria":"metal de transição"},
+    {"id":74,"nome":"Tungstênio","simbolo":"W","numero":74,"massa":183.84,"categoria":"metal de transição"},
+    {"id":75,"nome":"Rênio","simbolo":"Re","numero":75,"massa":186.21,"categoria":"metal de transição"},
+    {"id":76,"nome":"Ósmio","simbolo":"Os","numero":76,"massa":190.23,"categoria":"metal de transição"},
+    {"id":77,"nome":"Irídio","simbolo":"Ir","numero":77,"massa":192.22,"categoria":"metal de transição"},
+    {"id":78,"nome":"Platina","simbolo":"Pt","numero":78,"massa":195.08,"categoria":"metal de transição"},
+    {"id":79,"nome":"Ouro","simbolo":"Au","numero":79,"massa":196.97,"categoria":"metal de transição"},
+    {"id":80,"nome":"Mercúrio","simbolo":"Hg","numero":80,"massa":200.59,"categoria":"metal de transição"},
+    {"id":81,"nome":"Tálio","simbolo":"Tl","numero":81,"massa":204.38,"categoria":"metal pós-transição"},
+    {"id":82,"nome":"Chumbo","simbolo":"Pb","numero":82,"massa":207.2,"categoria":"metal pós-transição"},
+    {"id":83,"nome":"Bismuto","simbolo":"Bi","numero":83,"massa":208.98,"categoria":"metal pós-transição"},
+    {"id":84,"nome":"Polônio","simbolo":"Po","numero":84,"massa":209,"categoria":"semimetal"},
+    {"id":85,"nome":"Astato","simbolo":"At","numero":85,"massa":210,"categoria":"halogênio"},
+    {"id":86,"nome":"Radônio","simbolo":"Rn","numero":86,"massa":222,"categoria":"gás nobre"},
+    {"id":87,"nome":"Frâncio","simbolo":"Fr","numero":87,"massa":223,"categoria":"metal alcalino"},
+    {"id":88,"nome":"Rádio","simbolo":"Ra","numero":88,"massa":226,"categoria":"metal alcalino-terroso"},
+    {"id":89,"nome":"Actínio","simbolo":"Ac","numero":89,"massa":227,"categoria":"actinídeo"},
+    {"id":90,"nome":"Tório","simbolo":"Th","numero":90,"massa":232.04,"categoria":"actinídeo"},
+    {"id":91,"nome":"Protactínio","simbolo":"Pa","numero":91,"massa":231.04,"categoria":"actinídeo"},
+    {"id":92,"nome":"Urânio","simbolo":"U","numero":92,"massa":238.03,"categoria":"actinídeo"},
+    {"id":93,"nome":"Netúnio","simbolo":"Np","numero":93,"massa":237,"categoria":"actinídeo"},
+    {"id":94,"nome":"Plutônio","simbolo":"Pu","numero":94,"massa":244,"categoria":"actinídeo"},
+    {"id":95,"nome":"Amerício","simbolo":"Am","numero":95,"massa":243,"categoria":"actinídeo"},
+    {"id":96,"nome":"Cúrio","simbolo":"Cm","numero":96,"massa":247,"categoria":"actinídeo"},
+    {"id":97,"nome":"Berquélio","simbolo":"Bk","numero":97,"massa":247,"categoria":"actinídeo"},
+    {"id":98,"nome":"Califórnio","simbolo":"Cf","numero":98,"massa":251,"categoria":"actinídeo"},
+    {"id":99,"nome":"Einstênio","simbolo":"Es","numero":99,"massa":252,"categoria":"actinídeo"},
+    {"id":100,"nome":"Férmio","simbolo":"Fm","numero":100,"massa":257,"categoria":"actinídeo"},
+    {"id":101,"nome":"Mendelévio","simbolo":"Md","numero":101,"massa":258,"categoria":"actinídeo"},
+    {"id":102,"nome":"Nobélio","simbolo":"No","numero":102,"massa":259,"categoria":"actinídeo"},
+    {"id":103,"nome":"Laurêncio","simbolo":"Lr","numero":103,"massa":266,"categoria":"actinídeo"},
+    {"id":104,"nome":"Rutherfórdio","simbolo":"Rf","numero":104,"massa":267,"categoria":"metal de transição"},
+    {"id":105,"nome":"Dúbnio","simbolo":"Db","numero":105,"massa":268,"categoria":"metal de transição"},
+    {"id":106,"nome":"Seabórgio","simbolo":"Sg","numero":106,"massa":269,"categoria":"metal de transição"},
+    {"id":107,"nome":"Bóhrio","simbolo":"Bh","numero":107,"massa":270,"categoria":"metal de transição"},
+    {"id":108,"nome":"Hássio","simbolo":"Hs","numero":108,"massa":277,"categoria":"metal de transição"},
+    {"id":109,"nome":"Meitnério","simbolo":"Mt","numero":109,"massa":278,"categoria":"metal de transição"},
+    {"id":110,"nome":"Darmstádtio","simbolo":"Ds","numero":110,"massa":281,"categoria":"metal de transição"},
+    {"id":111,"nome":"Roentgênio","simbolo":"Rg","numero":111,"massa":282,"categoria":"metal de transição"},
+    {"id":112,"nome":"Copernício","simbolo":"Cn","numero":112,"massa":285,"categoria":"metal de transição"},
+    {"id":113,"nome":"Nihônio","simbolo":"Nh","numero":113,"massa":286,"categoria":"metal pós-transição"},
+    {"id":114,"nome":"Fleróvio","simbolo":"Fl","numero":114,"massa":289,"categoria":"metal pós-transição"},
+    {"id":115,"nome":"Moscóvio","simbolo":"Mc","numero":115,"massa":290,"categoria":"metal pós-transição"},
+    {"id":116,"nome":"Livermório","simbolo":"Lv","numero":116,"massa":293,"categoria":"metal pós-transição"},
+    {"id":117,"nome":"Tenessino","simbolo":"Ts","numero":117,"massa":294,"categoria":"halogênio"},
+    {"id":118,"nome":"Oganessônio","simbolo":"Og","numero":118,"massa":294,"categoria":"gás nobre"}
+];
+
+// Variável global para armazenar elementos
+let todosElementos = [];
+
+// Carrega os elementos do JSON com fallback
+fetch('elementos.json')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Arquivo não encontrado');
+        }
+        return response.json();
+    })
+    .then(elementos => {
+        console.log('✅ Sucesso! Carregados ' + elementos.length + ' elementos do JSON');
+        todosElementos = elementos;
+        criarCarrossel(elementos);
+    })
+    .catch(error => {
+        console.log('⚠️ JSON não carregou, usando fallback (' + elementosFallback.length + ' elementos)');
+        todosElementos = elementosFallback;
+        criarCarrossel(elementosFallback);
+    });
+
+// Função para criar o carrossel
+function criarCarrossel(elementos) {
+    const carrossel = document.getElementById('carrossel');
+    
+    if (!carrossel) {
+        console.error('❌ Elemento #carrossel não encontrado no HTML!');
+        return;
+    }
+    
+    // Limpa o carrossel
+    carrossel.innerHTML = '';
+    
+    // Cria um card para cada elemento
+    elementos.forEach((elemento, index) => {
+        const card = criarCard(elemento, index);
+        carrossel.appendChild(card);
+    });
+    
+    console.log('🎨 ' + elementos.length + ' cards criados!');
+}
+
+// Função para criar um card de elemento
+function criarCard(elemento, index) {
+    const card = document.createElement('div');
+    card.className = 'elemento-card';
+    card.dataset.categoria = elemento.categoria;
+    card.style.animationDelay = `${(index % 5) * 0.1}s`;
+    
+    card.innerHTML = `
+        <div class="numero-atomico">#${elemento.numero}</div>
+        <div class="simbolo">${elemento.simbolo}</div>
+        <div class="nome-elemento">${elemento.nome}</div>
+        <div class="massa-atomica">${elemento.massa}</div>
+        <span class="categoria">${elemento.categoria}</span>
+    `;
+    
+    // Adiciona evento de clique para abrir modal
+    card.addEventListener('click', () => abrirModal(elemento));
+    
+    return card;
+}
+
+// Função para abrir modal com detalhes do elemento
+function abrirModal(elemento) {
+    // Cria ou obtém o modal
+    let modal = document.getElementById('modal-elemento');
+    
+    if (!modal) {
+        modal = criarModal();
+        document.body.appendChild(modal);
+    }
+    
+    // Preenche o modal com os dados do elemento
+    const modalSimbolo = modal.querySelector('.modal-simbolo');
+    const modalNome = modal.querySelector('.modal-nome');
+    const modalNumero = modal.querySelector('#modal-numero');
+    const modalMassa = modal.querySelector('#modal-massa');
+    const modalCategoria = modal.querySelector('#modal-categoria');
+    
+    modalSimbolo.textContent = elemento.simbolo;
+    modalNome.textContent = elemento.nome;
+    modalNumero.textContent = elemento.numero;
+    modalMassa.textContent = elemento.massa + ' u';
+    modalCategoria.textContent = elemento.categoria.toUpperCase();
+    
+    // Define a cor do símbolo baseado na categoria
+    const categoria = elemento.categoria.toLowerCase();
+    modalSimbolo.style.color = getCategoriaColor(categoria);
+    
+    // Mostra o modal
+    modal.classList.add('ativo');
+}
+
+// Função para obter a cor da categoria
+function getCategoriaColor(categoria) {
+    const cores = {
+        'não metal': '#00d9ff',
+        'gás nobre': '#a855f7',
+        'metal alcalino': '#fbbf24',
+        'metal alcalino-terroso': '#fb923c',
+        'semimetal': '#10b981',
+        'halogênio': '#ec4899',
+        'metal pós-transição': '#6366f1',
+        'metal de transição': '#ef4444',
+        'lantanídeo': '#8b5cf6',
+        'actinídeo': '#f97316'
+    };
+    
+    return cores[categoria] || '#00d9ff';
+}
+
+// Função para criar a estrutura do modal
+function criarModal() {
+    const modal = document.createElement('div');
+    modal.id = 'modal-elemento';
+    modal.className = 'modal';
+    
+    modal.innerHTML = `
+        <div class="modal-conteudo">
+            <span class="modal-fechar">&times;</span>
+            <div class="modal-simbolo"></div>
+            <h3 class="modal-nome"></h3>
+            <div class="modal-info">
+                <div class="info-item">
+                    <div class="info-label">Número Atômico</div>
+                    <div class="info-valor" id="modal-numero"></div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Massa Atômica</div>
+                    <div class="info-valor" id="modal-massa"></div>
+                </div>
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <div class="info-label">Categoria</div>
+                    <div class="info-valor" id="modal-categoria"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Evento para fechar modal ao clicar no X
+    const btnFechar = modal.querySelector('.modal-fechar');
+    btnFechar.addEventListener('click', () => {
+        modal.classList.remove('ativo');
+    });
+    
+    // Evento para fechar modal ao clicar fora
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.remove('ativo');
+        }
+    });
+    
+    // Evento para fechar modal com tecla ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('ativo')) {
+            modal.classList.remove('ativo');
+        }
+    });
+    
+    return modal;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CORREÇÃO: Função para calcular scroll amount dinamicamente
+// ══════════════════════════════════════════════════════════════
+function getScrollAmount() {
+    const card = document.querySelector('.elemento-card');
+    const carrossel = document.getElementById('carrossel');
+    
+    if (!card || !carrossel) return 304; // fallback
+    
+    const cardWidth = card.offsetWidth;
+    const gap = parseInt(getComputedStyle(carrossel).gap) || 24;
+    
+    return cardWidth + gap;
+}
+
+// ══════════════════════════════════════════════════════════════
+// CORREÇÃO: Scroll suave com as setas do teclado (valor correto)
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+    const carrossel = document.getElementById('carrossel');
+    
+    if (!carrossel) return;
+    
+    const scrollAmount = getScrollAmount();
+    
+    if (e.key === 'ArrowLeft') {
+        carrossel.scrollBy({
+            left: -scrollAmount,  // CORRIGIDO: era 320
+            behavior: 'smooth'
+        });
+    } else if (e.key === 'ArrowRight') {
+        carrossel.scrollBy({
+            left: scrollAmount,   // CORRIGIDO: era 320
+            behavior: 'smooth'
+        });
+    }
+});
+
+// ══════════════════════════════════════════════════════════════
+// Botões de navegação do carrossel
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    const carrossel = document.getElementById('carrossel');
+    const btnPrev = document.querySelector('.carrossel-nav.prev');
+    const btnNext = document.querySelector('.carrossel-nav.next');
+    
+    if (btnPrev && carrossel) {
+        btnPrev.addEventListener('click', () => {
+            carrossel.scrollBy({
+                left: -getScrollAmount(),
+                behavior: 'smooth'
+            });
+        });
+    }
+    
+    if (btnNext && carrossel) {
+        btnNext.addEventListener('click', () => {
+            carrossel.scrollBy({
+                left: getScrollAmount(),
+                behavior: 'smooth'
+            });
+        });
+    }
+});
+
+// Interação com o SVG da tabela periódica (se disponível)
+window.addEventListener('load', () => {
+    const svgObject = document.getElementById('tabela-svg');
+    
+    if (svgObject && svgObject.contentDocument) {
+        const svgDoc = svgObject.contentDocument;
+        
+        if (svgDoc) {
+            console.log('✅ SVG da tabela carregado');
+            
+            // Adiciona interatividade aos elementos do SVG
+            const elementosSvg = svgDoc.querySelectorAll('[data-numero]');
+            
+            if (elementosSvg.length > 0) {
+                elementosSvg.forEach(elementoSvg => {
+                    elementoSvg.style.cursor = 'pointer';
+                    
+                    elementoSvg.addEventListener('click', () => {
+                        const numero = parseInt(elementoSvg.dataset.numero);
+                        const elemento = todosElementos.find(e => e.numero === numero);
+                        
+                        if (elemento) {
+                            abrirModal(elemento);
+                        }
+                    });
+                    
+                    // Efeitos de hover
+                    elementoSvg.addEventListener('mouseenter', () => {
+                        elementoSvg.style.opacity = '0.8';
+                        elementoSvg.style.filter = 'brightness(1.2)';
+                    });
+                    
+                    elementoSvg.addEventListener('mouseleave', () => {
+                        elementoSvg.style.opacity = '1';
+                        elementoSvg.style.filter = 'brightness(1)';
+                    });
+                });
+            }
+        }
+    }
+});
+
+// Console log estilizado
+console.log('⚛️ Tabela Periódica Interativa - Versão Corrigida');
+    </script>
+</body>
+</html>
