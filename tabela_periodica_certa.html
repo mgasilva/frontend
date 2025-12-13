@@ -332,7 +332,7 @@ h2 {
     font-weight: 700;
     line-height: 1;
     margin-bottom: 8px;
-    color: #ffffff;
+    color: var(--accent-cyan);
     transition: transform 0.3s ease, text-shadow 0.3s ease;
 }
 
@@ -594,12 +594,6 @@ h2 {
         font-size: 2.5rem;
     }
 }
-
-/* FORÇA o símbolo a ser sempre branco */
-.elemento-card .simbolo {
-    color: #ffffff !important;
-}
-
 </style>
 </head>
 <body>
@@ -625,7 +619,7 @@ h2 {
     <script>
 // Dados embutidos como fallback (todos os 118 elementos)
 const elementosFallback = [
-    {"id":1,"nome":"Hidrogenio","simbolo":"H","numero":1,"massa":1.008,"categoria":"não metal"},
+    {"id":1,"nome":"Hidrogênio","simbolo":"H","numero":1,"massa":1.008,"categoria":"não metal"},
     {"id":2,"nome":"Hélio","simbolo":"He","numero":2,"massa":4.0026,"categoria":"gás nobre"},
     {"id":3,"nome":"Lítio","simbolo":"Li","numero":3,"massa":6.94,"categoria":"metal alcalino"},
     {"id":4,"nome":"Berílio","simbolo":"Be","numero":4,"massa":9.0122,"categoria":"metal alcalino-terroso"},
@@ -748,39 +742,24 @@ const elementosFallback = [
 // Variável global para armazenar elementos
 let todosElementos = [];
 
-// Carregando elementos da API:
-async function carregarElementosDaAPI() {
-    try {
-        const response = await fetch('http://127.0.0.1:5000/elementos');
-
+// Carrega os elementos do JSON com fallback
+fetch('elementos.json')
+    .then(response => {
         if (!response.ok) {
-            throw new Error('API não respondeu');
+            throw new Error('Arquivo não encontrado');
         }
-
-        const dadosApi = await response.json();
-
-        // Adaptador: API → formato do front-end
-        const elementosAdaptados = dadosApi.map(e => ({
-            numero: e.numero_atomico,
-            simbolo: e.simbolo,
-            nome: e.nome,
-            massa: e.massa_atomica,
-            categoria: e.categoria
-        }));
-
-        console.log('✅ API OK: ' + elementosAdaptados.length + ' elementos carregados');
-        todosElementos = elementosAdaptados;
-        criarCarrossel(elementosAdaptados);
-
-    } catch (error) {
-        console.warn('⚠️ API falhou, usando fallback');
+        return response.json();
+    })
+    .then(elementos => {
+        console.log('✅ Sucesso! Carregados ' + elementos.length + ' elementos do JSON');
+        todosElementos = elementos;
+        criarCarrossel(elementos);
+    })
+    .catch(error => {
+        console.log('⚠️ JSON não carregou, usando fallback (' + elementosFallback.length + ' elementos)');
         todosElementos = elementosFallback;
         criarCarrossel(elementosFallback);
-    }
-}
-
-// DISPARA O CARREGAMENTO
-carregarElementosDaAPI();
+    });
 
 // Função para criar o carrossel
 function criarCarrossel(elementos) {
@@ -803,34 +782,6 @@ function criarCarrossel(elementos) {
     console.log('🎨 ' + elementos.length + ' cards criados!');
 }
 
-// Função para consumir API
-async function buscarElementoDetalhe(numeroAtomico) {
-    try {
-        const response = await fetch(
-            `http://127.0.0.1:5000/elementos/${numeroAtomico}`
-        );
-
-        if (!response.ok) {
-            throw new Error('Elemento não encontrado');
-        }
-
-        const e = await response.json();
-
-        // adapta para o formato do modal
-        return {
-            numero: e.numero_atomico,
-            simbolo: e.simbolo,
-            nome: e.nome,
-            massa: e.massa_atomica,
-            categoria: e.categoria
-        };
-
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
-
 // Função para criar um card de elemento
 function criarCard(elemento, index) {
     const card = document.createElement('div');
@@ -847,12 +798,7 @@ function criarCard(elemento, index) {
     `;
     
     // Adiciona evento de clique para abrir modal
-    card.addEventListener('click', async () => {
-    const detalhe = await buscarElementoDetalhe(elemento.numero);
-    if (detalhe) {
-        abrirModal(detalhe);
-    }
-});
+    card.addEventListener('click', () => abrirModal(elemento));
     
     return card;
 }
