@@ -687,6 +687,10 @@ h2 {
     </div>
 
     <script>
+
+//variavel global para evitar bug ao adicionar informações
+    let elementoAtualNumero = null;
+
 // Dados embutidos como fallback (todos os 118 elementos)
 const elementosFallback = [
     {"id":1,"nome":"Hidrogenio","simbolo":"H","numero":1,"massa":1.008,"categoria":"não metal"},
@@ -1007,30 +1011,38 @@ function abrirModal(elemento) {
     // Carrega info adicional
     carregarInfoAdicionalNoModal(elemento.numero);
 
-    const botao = document.getElementById("btn-adicionar-info");
-    const textarea = document.getElementById("nova-info-texto");
-    const status = document.getElementById("info-status");
+    elementoAtualNumero = elemento.numero;
 
-    botao.addEventListener("click", async () => {
-        const texto = textarea.value.trim();
+    const botao = modal.querySelector("#btn-adicionar-info");
+    const textarea = modal.querySelector("#nova-info-texto");
+    const status = modal.querySelector("#info-status");
 
-        if (!texto) {
-            status.textContent = "Digite alguma informação.";
-            return;
-        }
+    botao.onclick = async () => {
+    const texto = textarea.value.trim();
 
-        status.textContent = "Salvando...";
+    if (!texto) {
+        status.textContent = "Digite alguma informação.";
+        return;
+    }
 
-        const ok = await adicionarInfoAdicional(elemento.numero, texto);
+    if (!elementoAtualNumero) {
+        status.textContent = "Elemento inválido.";
+        return;
+    }
 
-        if (ok) {
-            textarea.value = "";
-            status.textContent = "Informação adicionada com sucesso.";
-            carregarInfoAdicionalNoModal(elemento.numero);
-        } else {
-            status.textContent = "Erro ao salvar informação.";
-        }
-    });
+    status.textContent = "Salvando...";
+
+    const ok = await adicionarInfoAdicional(elementoAtualNumero, texto);
+
+    if (ok) {
+        textarea.value = "";
+        status.textContent = "Informação adicionada com sucesso.";
+        carregarInfoAdicionalNoModal(elementoAtualNumero);
+    } else {
+        status.textContent = "Erro ao salvar informação.";
+    }
+};
+
 }
 
 // Função para obter a cor da categoria
@@ -1187,6 +1199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 
 // Interação com o SVG da tabela periódica (se disponível)
 window.addEventListener('load', () => {
