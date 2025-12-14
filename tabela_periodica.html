@@ -600,6 +600,70 @@ h2 {
     color: #ffffff !important;
 }
 
+.modal-info-adicional-form {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-info-adicional-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.modal-info-adicional-form button {
+    align-self: flex-end;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: var(--accent-cyan);
+    color: #000;
+    font-weight: 600;
+}
+
+.info-status {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+.modal-info-adicional {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-info-adicional h4 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    color: var(--accent-purple);
+    text-align: center;
+}
+
+.info-adicional-item {
+    margin-bottom: 12px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+
+.info-adicional-tipo {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.info-loading {
+    text-align: center;
+    color: var(--text-secondary);
+    font-style: italic;
+}
 </style>
 </head>
 <body>
@@ -942,6 +1006,31 @@ function abrirModal(elemento) {
 
     // Carrega info adicional
     carregarInfoAdicionalNoModal(elemento.numero);
+
+    const botao = document.getElementById("btn-adicionar-info");
+    const textarea = document.getElementById("nova-info-texto");
+    const status = document.getElementById("info-status");
+
+    botao.addEventListener("click", async () => {
+        const texto = textarea.value.trim();
+
+        if (!texto) {
+            status.textContent = "Digite alguma informação.";
+            return;
+        }
+
+        status.textContent = "Salvando...";
+
+        const ok = await adicionarInfoAdicional(elemento.numero, texto);
+
+        if (ok) {
+            textarea.value = "";
+            status.textContent = "Informação adicionada com sucesso.";
+            carregarInfoAdicionalNoModal(elemento.numero);
+        } else {
+            status.textContent = "Erro ao salvar informação.";
+        }
+    });
 }
 
 // Função para obter a cor da categoria
@@ -1001,6 +1090,13 @@ function criarModal() {
         <div class="info-adicional-conteudo">
         <p class="info-loading">Carregando informações adicionais...</p>
         </div>
+    </div>
+    <div class="modal-info-adicional-form">
+    <textarea id="nova-info-texto"
+              placeholder="Adicionar informação adicional..."
+              rows="3"></textarea>
+    <button id="btn-adicionar-info">Adicionar</button>
+    <p id="info-status" class="info-status"></p>
     </div>
 `;
     
@@ -1133,6 +1229,22 @@ window.addEventListener('load', () => {
         }
     }
 });
+
+async function adicionarInfoAdicional(numeroAtomico, texto) {
+    const response = await fetch(
+        `http://127.0.0.1:5000/elementos/${numeroAtomico}/info_adicional`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ info: texto })
+        }
+    );
+
+    return response.ok;
+}
+
 
 // Console log estilizado
 console.log('⚛️ Tabela Periódica Interativa - Versão Corrigida');
